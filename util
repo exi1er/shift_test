@@ -1,0 +1,209 @@
+package test_text;
+
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Scanner;
+
+public class util {
+
+	public static void main(String[] args) throws Exception {
+		String put = "";
+		String pref = "";
+		int stringstxt = 0;
+		int integerstxt = 0;
+		int floatstxt = 0;
+		int yslovie = 1; // условие перезаписи
+		boolean statistik = false;
+
+		long intMax = 0;
+		long intMin = 0;
+		long intSum = 0;
+		float floatMax = 0;
+		float floatMin = 0;
+		float floatSum = 0;
+		int simvolsmin = 0;
+		int simvolsmax = 0;
+		String primers = "";
+
+		Scanner in = new Scanner(System.in);
+		System.out.print("Введите строку: ");
+		String stroca = in.nextLine() + " ";
+		if (stroca.contains("-a"))
+			yslovie = 0;
+		if (stroca.contains("-o"))
+
+		{
+
+			put = stroca.substring(stroca.indexOf("-o") + 3, stroca.indexOf(" ", stroca.indexOf("-o") + 3));
+			Path path = Paths
+					.get(stroca.substring(stroca.indexOf("-o") + 3, stroca.indexOf(" ", stroca.indexOf("-o") + 3)));
+
+			if (!Files.exists(path)) {
+
+				try {
+					Files.createDirectory(path);
+					System.out.println("директория создана: " + path);
+				} catch (Exception e) {
+
+					put = ("");
+					System.out.println("неверный путь, дириктория выбрана по умолчанию ");
+				}
+
+			} else {
+
+				System.out.println("дириетория уже существует: " + path);
+			}
+
+		}
+		;
+
+		if (stroca.contains("-p"))
+		{
+
+			pref = stroca.substring(stroca.indexOf("-p") + 3, stroca.indexOf(" ", stroca.indexOf("-p") + 3));
+					}
+		;
+
+		if (stroca.contains("-f"))
+			statistik = true;
+
+		if (stroca.contains("sample- ") != true)
+			System.out.println("Метка sample- не обнаружена");
+
+		if (stroca.contains("sample- "))
+			primers = stroca.substring(stroca.indexOf("sample-") + 8);
+
+		String[] fl = primers.split(".txt ");
+		for (String a : fl)
+
+		{
+
+			FileReader rd = new FileReader(a + ".txt");
+			Scanner scan = new Scanner(rd);
+
+			int i = 1;
+
+			while (scan.hasNextLine()) {
+
+				Object buffer = scan.nextLine();
+
+				String type = "strings.txt";
+
+				try {
+					long value = Long.parseLong((String) buffer);
+					type = "integers.txt";
+					integerstxt++;
+					setwrite(put + "\\" + pref + type, buffer, (integerstxt > yslovie));
+					if (statistik) {
+						if (integerstxt == 1)
+							intMin = value;
+						if (intMax < value)
+							intMax = value;
+						if (intMin > value)
+							intMin = value;
+						intSum += value;
+					}
+
+				} catch (NumberFormatException nfe) {
+
+				}
+				if (type != "integers.txt") {
+					try {
+						double value = Double.parseDouble((String) buffer);
+						type = "floats.txt";
+						floatstxt++;
+						setwrite(put + "\\" + pref + type, buffer, (floatstxt > yslovie));
+
+						if (statistik) {
+							if (floatstxt == 1)
+								floatMin = (float) value;
+							if (floatMax < value)
+								floatMax = (float) value;
+
+							if (floatMin > value)
+								floatMin = (float) value;
+
+							floatSum += value;
+						}
+
+					} catch (NumberFormatException nfe) {
+
+					}
+
+				}
+				if (type == "strings.txt") {
+					stringstxt++;
+					setwrite(put + "\\" + pref + type, buffer, (integerstxt > yslovie));
+					if (statistik) {
+						if (simvolsmax < buffer.toString().length())
+							simvolsmax = buffer.toString().length();
+						if (simvolsmin > buffer.toString().length())
+							simvolsmin = buffer.toString().length();
+						if (simvolsmin == 0)
+							simvolsmin = buffer.toString().length();
+						
+					}
+
+				}
+
+				i++;
+			}
+
+			rd.close();
+
+		}
+
+		if (stroca.contains("-s"))
+
+		{
+			System.out.println("количество записей String " + stringstxt);
+			System.out.println("количество записей Integers " + integerstxt);
+			System.out.println("количество записей floats " + floatstxt);
+
+		}
+
+		if (statistik) {
+			if (stringstxt != 0) {
+				System.out.println("Количество  Strings " + stringstxt);
+				System.out.println("Максимальное значение символов в строке " + simvolsmax);
+				System.out.println("Минимальна значение символов в строке " + simvolsmin);
+			}
+
+			if (integerstxt != 0) {
+				System.out.println("Количество int " + integerstxt);
+				System.out.println("Максимальное значение int " + intMax);
+				System.out.println("Минимальна значение int " + intMin);
+				System.out.println("сумма значений Int " + intSum);
+				System.out.println("среднее значение Int " + (intSum / integerstxt));
+
+			}
+			if (floatstxt != 0) {
+				System.out.println("Количество float " + floatstxt);
+				System.out.println("Максимальное значение float " + floatMax);
+				System.out.println("Минимальна значение float " + floatMin);
+				System.out.println("сумма значений float " + floatSum);
+				System.out.println("среднее значение float " + (floatSum / floatstxt));
+
+			}
+
+		}
+
+	}
+
+	private static void setwrite(String type, Object ob, boolean zat) {
+
+		try (FileWriter writer = new FileWriter(type, zat)) {
+
+			writer.write(ob.toString() + '\n');
+
+		} catch (IOException ex) {
+
+				}
+
+	}
+
+}
